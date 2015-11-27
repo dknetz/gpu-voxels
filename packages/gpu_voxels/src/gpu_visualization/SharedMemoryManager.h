@@ -43,6 +43,7 @@ public:
    */
   SharedMemoryManager(std::string segment_name, bool open_only)
   {
+    printf("shm name: %s\n", segment_name.c_str());
     if (open_only)
     {
       m_segment = boost::interprocess::managed_shared_memory(boost::interprocess::open_only,

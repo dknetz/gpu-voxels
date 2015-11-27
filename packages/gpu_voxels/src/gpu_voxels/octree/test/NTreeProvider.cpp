@@ -63,6 +63,7 @@ NTreeProvider::NTreeProvider() :
         m_d_cubes_1(NULL), m_d_cubes_2(NULL)
 {
   m_segment_name = shm_segment_name_octrees;
+  printf("shm name: %s\n", m_segment_name.c_str());
 }
 
 NTreeProvider::~NTreeProvider()
@@ -282,11 +283,11 @@ void NTreeProvider::init(Provider_Parameter& parameter)
 
     boost::function<void(const sensor_msgs::PointCloud2::ConstPtr& msg)> f_cb = boost::bind(
         &NTreeProvider::ros_point_cloud_front, this, _1);
-    m_subscriber_front = new ros::Subscriber(m_node_handle->subscribe("/robot/point_cloud_front", 1, f_cb));
+    m_subscriber_front = new ros::Subscriber(m_node_handle->subscribe("/camera/depth/points", 1, f_cb));
 
     boost::function<void(const sensor_msgs::PointCloud2::ConstPtr& msg)> f_cb2 = boost::bind(
         &NTreeProvider::ros_point_cloud_back, this, _1);
-    m_subscriber_back = new ros::Subscriber(m_node_handle->subscribe("/robot/point_cloud_back", 1, f_cb2));
+    m_subscriber_back = new ros::Subscriber(m_node_handle->subscribe("/camera/depth/points", 1, f_cb2));
     ROS_INFO("Ready to receive ros_point_cloud_back\n");
 
     m_spinner = new ros::AsyncSpinner(4);
@@ -493,7 +494,7 @@ bool NTreeProvider::waitForNewData(volatile bool* stop)
 
 void NTreeProvider::ros_point_cloud(const sensor_msgs::PointCloud2::ConstPtr& msg, const uint32_t type)
 {
-  printf("ros callback\n");
+  //printf("ros callback\n");
   // lock
   m_mutex.lock();
 
@@ -506,6 +507,8 @@ void NTreeProvider::ros_point_cloud(const sensor_msgs::PointCloud2::ConstPtr& ms
     str_stream << "/camera_depth_optical_frame_" << name;
     string from_frame = str_stream.str();
     string to_frame = "/odom";
+    printf("from_frame: %s, to_frame: %s\n", from_frame.c_str(), to_frame.c_str());
+
     if (m_tf_listener->canTransform(to_frame, from_frame, ros::Time(0)))
     {
       try
@@ -580,6 +583,7 @@ void NTreeProvider::ros_point_cloud(const sensor_msgs::PointCloud2::ConstPtr& ms
 
     m_ntree->insertVoxel(*d_free_space_voxel2, *d_object_voxel2, sensor_origin, m_parameter->resolution_free,
                          m_parameter->resolution_occupied);
+    printf("Memsize: %f", double(m_ntree->getMemUsage()) / 1024 / 1024);
 
     PERF_MON_PRINT_AND_RESET_INFO_P(temp_timer, "insertVoxel", prefix);
 

@@ -221,7 +221,7 @@ bool Visualizer::initalizeVisualizer(int& argc, char *argv[])
   } catch (boost::interprocess::interprocess_exception& e)
   {
     m_shm_manager_visualizer = NULL;
-    LOGGING_WARNING_C(Visualization, Visualizer, "Couldn't open the shared memory segment of Visualizer!" << endl);
+    LOGGING_WARNING_C(Visualization, Visualizer, "Couldn't open the shared memory segment of Visualizer: !" << e.what() << endl);
   }
 
   return initializeContextFromXML(argc, argv) & initGL(&argc, argv);
